@@ -33,10 +33,13 @@ class MockStatsEngine extends StatsEngine with StrictLogging {
 
   override def stop(replyTo: ActorRef, exception: Option[Exception]): Unit = {}
 
-  override def logUser(userMessage: UserMessage): Unit = {}
+  override def logUserStart(scenario: String, timestamp: Long): Unit = {}
+
+  override def logUserEnd(userMessage: UserEndMessage): Unit = {}
 
   override def logResponse(
-                            session:        Session,
+                            scenario: String,
+                            groups: List[String],
                             requestName:    String,
                             startTimestamp: Long,
                             endTimestamp:   Long,
@@ -45,9 +48,8 @@ class MockStatsEngine extends StatsEngine with StrictLogging {
                             message:        Option[String]
                           ): Unit =
     handle(ResponseMessage(
-      session.scenario,
-      session.userId,
-      session.groupHierarchy,
+      scenario,
+      groups,
       requestName,
       startTimestamp,
       endTimestamp,
@@ -56,13 +58,20 @@ class MockStatsEngine extends StatsEngine with StrictLogging {
       message
     ))
 
-  override def logGroupEnd(session: Session, group: GroupBlock, exitTimestamp: Long): Unit =
-    handle(GroupMessage(session.scenario, session.userId, group.hierarchy, group.startTimestamp, exitTimestamp, group.cumulatedResponseTime, group.status))
+  override def logGroupEnd(scenario: String, groupBlock: GroupBlock, exitTimestamp: Long): Unit =
+    handle(GroupMessage(
+      scenario,
+      groupBlock.groups,
+      groupBlock.startTimestamp,
+      exitTimestamp,
+      groupBlock.cumulatedResponseTime,
+      groupBlock.status
+    ))
 
-  override def logCrash(session: Session, requestName: String, error: String): Unit =
+  override def logCrash(scenario: String, groups: List[String], requestName: String, error: String): Unit =
     handle(ErrorMessage(error, new Date().getTime))
 
-  override def reportUnbuildableRequest(session: Session, requestName: String, errorMessage: String): Unit = {}
+  override def reportUnbuildableRequest(scenario: String, groups: List[String], requestName: String, errorMessage: String): Unit = {}
 
   private def handle(msg: DataWriterMessage) = {
     dataWriterMsg = msg :: dataWriterMsg
