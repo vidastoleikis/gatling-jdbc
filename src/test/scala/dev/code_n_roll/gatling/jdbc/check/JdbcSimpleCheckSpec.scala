@@ -2,10 +2,10 @@ package dev.code_n_roll.gatling.jdbc.check
 
 import java.time.Instant
 import java.util
-
 import io.gatling.commons.validation.{Failure, Success}
 import io.gatling.core.check.CheckResult
 import io.gatling.core.session.Session
+import io.netty.channel.DefaultEventLoop
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.collection.mutable
@@ -15,7 +15,7 @@ import scala.collection.mutable
   */
 class JdbcSimpleCheckSpec extends FlatSpec with Matchers {
 
-  val session = Session("scenario", 0, Instant.now.getEpochSecond)
+  val session = Session("scenario", 0, new DefaultEventLoop())
 
   implicit val cache: util.Map[Any, Any] = new util.HashMap[Any, Any]()
 
